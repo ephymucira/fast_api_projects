@@ -1,3 +1,4 @@
-tortoise-orm
 fastapi
 uvicorn[standard]
+tortoise-orm
+aiosqlite 
