@@ -9,6 +9,10 @@ def index():
     return {"message":"Hello World"}
 
 
+
+@app.post("/register")
+async def user_registration(User)
+
 register_tortoise(
 
     app,
