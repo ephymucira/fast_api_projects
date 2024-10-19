@@ -5,22 +5,20 @@ from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from pydantic import BaseModel, EmailStr
 from starlette.responses import JSONResponse
 from dotenv import dotenv_values
-from .models import User
+from models import User
 import jwt
 cofig_details = dotenv_values(".env")
 
 
 conf = ConnectionConfig(
-
     MAIL_USERNAME = cofig_details["EMAIL"],
     MAIL_PASSWORD = cofig_details["PASS"],
     MAIL_FROM = cofig_details["EMAIL"],
     MAIL_PORT = 587,
     MAIL_SERVER = "smtp.gmail.com",
-    MAIL_TLS = True,
-    MAIL_SSL = False,
+    MAIL_STARTTLS = True,  # Correct field
+    MAIL_SSL_TLS = False,  # Correct field
     USE_CREDENTIALS = True
-
 )
 
 class EmailSchema(BaseModel):
@@ -33,7 +31,7 @@ async def send_email(email: List, instance:User):
 
     }
 
-    token = jwt.encode(token_data,cofig_details["SECRET"])
+    token = jwt.encode(token_data,cofig_details["SECRET"],algorithm="HS256")
 
     template = f"""
           <!DOCTYPE html>

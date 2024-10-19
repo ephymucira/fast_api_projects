@@ -1,7 +1,8 @@
-from fastapi import FastAPI,request,HTTPException,status
+from fastapi import FastAPI,Request,HTTPException,status
 from tortoise.contrib.fastapi import register_tortoise
 from models import *
 from authentications import *
+from emailss import*
 
 
 #signals
@@ -14,7 +15,8 @@ from tortoise import BaseDBAsyncClient
 from fastapi.responses import HTMLResponse
 
 #templates
-from fastapi.templating import jinja2Templates
+from fastapi.templating import Jinja2Templates
+
 
 app = FastAPI()
 
@@ -47,6 +49,7 @@ async def create_business(
         await business_pydantic.from_tortoise_orm(business_obj)
 
         #sending the email
+        await send_email([instance.email], instance)
 
 
 
@@ -54,8 +57,8 @@ async def create_business(
 def index():
     return {"message":"Hello World"}
 
-templates = jinja2Templates(directory="templates")
-@app.get("/verification",response_class)
+templates = Jinja2Templates(directory="templates")
+@app.get("/verification",response_class=HTMLResponse)
 async def email_verification(request:Request,token:str):
     user = await verify_token(token)
 

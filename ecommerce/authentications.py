@@ -1,10 +1,10 @@
 from passlib.context import CryptContext
 import jwt
 from dotenv import dotenv_values
-from .models import User
+from models import User
 from fastapi import status
 from fastapi.exceptions import HTTPException
-from authentications import verify_token,get_hashed_password
+
 
 
 config_credentials = dotenv_values(".env")
@@ -18,7 +18,7 @@ def get_hashed_password(password):
 async def verify_token(token:str):
 
     try:
-        payload = jwt.decode(token,config_credentials["SECRET"])
+        payload = jwt.decode(token,config_credentials["SECRET"],algorithm=["HS256"])
         user = await User.get(id = payload.get("id"))
     
     except:
