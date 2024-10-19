@@ -3,6 +3,7 @@ from tortoise.contrib.fastapi import register_tortoise
 from models import *
 from authentications import *
 
+
 #signals
 from tortoise.signals import post_save
 from typing import List, Optional,Type
@@ -16,6 +17,17 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import jinja2Templates
 
 app = FastAPI()
+
+
+register_tortoise(
+
+    app,
+    db_url = "sqlite://database.sqlite3",
+    modules = {"models":["models"]},
+    generate_schemas = True,
+    add_exception_handlers = True
+
+)
 
 
 @post_save(User)
@@ -70,12 +82,3 @@ async def user_registration(user:user_pydanticIn):
         "data":f"Hello {new_user.username}, thanks for choosingg our services, click the link to confirm registration."
     }
 
-register_tortoise(
-
-    app,
-    db_url = "sqlite://database.sqlite3",
-    modules = {"models":["models"]},
-    generate_schemas = True,
-    add_exception_handlers = True
-
-)

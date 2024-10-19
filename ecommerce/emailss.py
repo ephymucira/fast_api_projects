@@ -63,7 +63,7 @@ async def send_email(email: List, instance:User):
     """ 
 
     message = MessageSchema(
-        subject="EasyShopas Account Verification Email"
+        subject="EasyShopas Account Verification Email",
         recipients = email,
         body = template,
         subtype = "html"
