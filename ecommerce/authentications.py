@@ -12,7 +12,14 @@ config_credentials = dotenv_values(".env")
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 def get_hashed_password(password):
-    return pwd_context.hash(password)
+    try:
+        return pwd_context.hash(password)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error hashing password: {str(e)}"
+        )
+
 
 
 async def verify_token(token:str):
