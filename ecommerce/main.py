@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI, Request, HTTPException, status
+from fastapi import FastAPI, Request, HTTPException, status,Depends
 from tortoise.contrib.fastapi import register_tortoise
 from tortoise.signals import post_save
 from typing import List, Optional, Type
@@ -9,12 +9,29 @@ from fastapi.templating import Jinja2Templates
 from models import *
 from authentications import *
 from emailss import *
+from fastapi.security import (OAuthPasswordBearer, OAuth2PasswordRequestForm)
+
 
 # Initialize logging at the very top of the file
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+oath2_scheme = OAuthPasswordBearer(tokenUrl='token')
+
+
+@app.post("/token")
+async def generate_token(request_form:OAuth2PasswordRequestForm = Depends()):
+    token = await token_generator(request_form.username, request_form.password)
+    return {"access_token":token, "token_type":"bearer"}
+
+async def get_current_user(token: str = Depends(oath2_scheme)):
+    return {"current user":token}
+
+@app.post("/user/me")
+
+
 
 register_tortoise(
     app,
