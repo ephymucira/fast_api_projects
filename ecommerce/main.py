@@ -27,9 +27,33 @@ async def generate_token(request_form:OAuth2PasswordRequestForm = Depends()):
     return {"access_token":token, "token_type":"bearer"}
 
 async def get_current_user(token: str = Depends(oath2_scheme)):
-    return {"current user":token}
+    try :
+        payload = jwt.decode(token,config_credentials["SECRET"],algorithms=["HS256"])
+        user = await User.get(id = payload.get("id"))
+
+    except:
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail= "Invalid username or password",
+            headers={"WWW-Authenticate":"Bearer"}
+        )
+    return await user
 
 @app.post("/user/me")
+async def user_login(user: user_pydanticIn = Depends(get_current_user)):
+    #return business details of the user
+    business =  await Business.get(owner=user)
+
+    return {
+        "status":"ok",
+        "data":{
+            "username": user.username,
+            "email":user.email,
+            "verified":user.is_verified,
+            "joined_date":user.join_date.strftime("%b %d %Y")
+
+        }
+    }
 
 
 

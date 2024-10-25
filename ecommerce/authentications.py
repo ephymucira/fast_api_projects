@@ -25,7 +25,7 @@ def get_hashed_password(password):
 async def verify_token(token:str):
 
     try:
-        payload = jwt.decode(token,config_credentials["SECRET"],algorithm=["HS256"])
+        payload = jwt.decode(token,config_credentials["SECRET"],algorithms=["HS256"])
         user = await User.get(id = payload.get("id"))
     
     except:
@@ -62,6 +62,6 @@ async def token_generator(username:str,password:str):
         "username":user.username
     }
 
-    token = jwt.encode(token_data, config_credentials['SECRET'],algorithm=["HS256"])
+    token = jwt.encode(token_data, config_credentials['SECRET'],algorithms=["HS256"])
 
     return token
