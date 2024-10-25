@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from models import *
 from authentications import *
 from emailss import *
-from fastapi.security import (OAuthPasswordBearer, OAuth2PasswordRequestForm)
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 
 # Initialize logging at the very top of the file
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-oath2_scheme = OAuthPasswordBearer(tokenUrl='token')
+oath2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 
 @app.post("/token")
