@@ -2,3 +2,7 @@ fastapi
 uvicorn[standard]
 tortoise-orm
 aiosqlite 
+passlib[bcrypt]
+fastapi-mail
+python-dotenv
+pyjwt

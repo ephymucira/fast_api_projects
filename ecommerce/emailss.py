@@ -119,11 +119,11 @@ async def send_email(email_list: List, instance: User):
         return True
         
     except Exception as e:
-        logger.error(f"Failed to send email: {str(e)}")
+        # logger.error(f"Failed to send email: {str(e)}")
         # Log configuration details (excluding sensitive information)
-        logger.debug(f"Mail server: {conf.MAIL_SERVER}")
-        logger.debug(f"Mail port: {conf.MAIL_PORT}")
-        logger.debug(f"From address: {conf.MAIL_FROM}")
+        # logger.debug(f"Mail server: {conf.MAIL_SERVER}")
+        # logger.debug(f"Mail port: {conf.MAIL_PORT}")
+        # logger.debug(f"From address: {conf.MAIL_FROM}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to send email: {str(e)}"

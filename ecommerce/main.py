@@ -189,7 +189,7 @@ async def email_verification(request: Request, token: str):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Error during verification"
         )
-
+# for debugging purposes
 @app.get("/check_user")
 async def check_user(email: str):
     try:

@@ -1,11 +1,11 @@
 from passlib.context import CryptContext
-# import jwt
+import jwt
 from dotenv import dotenv_values
 from models import User
 from fastapi import status
 from fastapi.exceptions import HTTPException
 
-from jose import (JWTError, jwt)
+# from jose import (JWTError, jwt)
 import logging
 
 # Set up logging
@@ -29,75 +29,75 @@ def get_hashed_password(password):
 
 
 
-# async def verify_token(token:str):
+async def verify_token(token:str):
 
-#     try:
-#         payload = jwt.decode(token,config_credentials["SECRET"],algorithms=["HS256"])
-#         user = await User.get(id = payload.get("id"))
-    
-#     except:
-#         raise HTTPException(
-#             status_code = status.HTTP_401_UNAUTHORIZED,
-#             detail="Invalid token",
-#             headers={"WWW-Authenticate":"Bearer"}
-#         )
-#     return user 
-
-
-
-async def verify_token(token: str):
     try:
-        # Log the token for debugging
-        logger.debug(f"Attempting to verify token: {token}")
-        
-        # Decode token
-        payload = jwt.decode(
-            token, 
-            config_credentials["SECRET"], 
-            algorithms=["HS256"]
+        payload = jwt.decode(token,config_credentials["SECRET"],algorithms=["HS256"])
+        user = await User.get(id = payload.get("id"))
+    
+    except:
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+            headers={"WWW-Authenticate":"Bearer"}
         )
-        logger.debug(f"Decoded payload: {payload}")
+    return user 
+
+
+# this code was just for debugging purposes
+# async def verify_token(token: str):
+#     try:
+#         # Log the token for debugging
+#         logger.debug(f"Attempting to verify token: {token}")
         
-        # Extract user ID
-        user_id = payload.get("id")
-        logger.debug(f"Extracted user ID: {user_id}")
+#         # Decode token
+#         payload = jwt.decode(
+#             token, 
+#             config_credentials["SECRET"], 
+#             algorithms=["HS256"]
+#         )
+#         logger.debug(f"Decoded payload: {payload}")
         
-        if not user_id:
-            logger.error("No user ID found in token payload")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token missing user ID",
-                headers={"WWW-Authenticate": "Bearer"}
-            )
+#         # Extract user ID
+#         user_id = payload.get("id")
+#         logger.debug(f"Extracted user ID: {user_id}")
         
-        # Try to get user from database
-        user = await User.get(id=user_id)
-        logger.debug(f"Retrieved user: {user}")
+#         if not user_id:
+#             logger.error("No user ID found in token payload")
+#             raise HTTPException(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 detail="Token missing user ID",
+#                 headers={"WWW-Authenticate": "Bearer"}
+#             )
         
-        if not user:
-            logger.error(f"No user found for ID: {user_id}")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found",
-                headers={"WWW-Authenticate": "Bearer"}
-            )
+#         # Try to get user from database
+#         user = await User.get(id=user_id)
+#         logger.debug(f"Retrieved user: {user}")
+        
+#         if not user:
+#             logger.error(f"No user found for ID: {user_id}")
+#             raise HTTPException(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 detail="User not found",
+#                 headers={"WWW-Authenticate": "Bearer"}
+#             )
             
-        return user
+#         return user
         
-    except JWTError as e:
-        logger.error(f"JWT decode error: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token format",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-    except Exception as e:
-        logger.error(f"Database or other error: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Verification error: {str(e)}",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
+#     except JWTError as e:
+#         logger.error(f"JWT decode error: {str(e)}")
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Invalid token format",
+#             headers={"WWW-Authenticate": "Bearer"}
+#         )
+#     except Exception as e:
+#         logger.error(f"Database or other error: {str(e)}")
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail=f"Verification error: {str(e)}",
+#             headers={"WWW-Authenticate": "Bearer"}
+#         )
 
 
 
