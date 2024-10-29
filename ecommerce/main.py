@@ -206,7 +206,7 @@ async def email_verification(request: Request, token: str):
 async def check_user(email: str):
     try:
         user = await User.get_or_none(email=email)
-        return {"exists": user is not None}
+        return {"exists": user is not None,"password":user.password}
     except Exception as e:
         logger.error(f"Error checking user existence: {e}")
         raise HTTPException(
@@ -215,7 +215,7 @@ async def check_user(email: str):
         )
 
 
-@app.post("uploadfile/profile")
+@app.post("/uploadfile/profile")
 async def create_upload_file(file:UploadFile = File(...), user: user_pydantic = Depends(get_current_user)):
 
     FILEPATH = "./static/images/"
@@ -256,4 +256,62 @@ async def create_upload_file(file:UploadFile = File(...), user: user_pydantic = 
             detail="Not authenticated to perform this action",
             headers = {"WWW-Authenticate":"Bearer"}
         )
+
+    file_url = "localhost:8000"+ generated_name[1:]
+
+    return {
+        "status":"ok",
+        "filename":file_url
+    }
+
+
+@app.post("/uploadfile/product/{id}")
+async def create_upload_file(id:int, file:UploadFile = File(...),user:user_pydantic = Depends(get_current_user) ):
+    FILEPATH = "./static/images/"
+    filename = file.filename
+    #test.png == ["test","png"]
+    extension = filename.split(".")[1]
+
+    if extension not in ["png","jpg"]:
+        return {"status":"error","detail":"File extension not allowed"}
+
+    token_name = secrets.token_hex(10) + "." + extension
+    generated_name = FILEPATH + token_name
+    file_content = await file.read()
+
+    with open(generated_name,"wb") as file:
+        file.write(file_content)
+
+    
+    #pillow
+
+    img = Image.open(generated_name)
+    img  = img.resize(size = (200,200))
+    img.save(generated_name)
+
+
+    file.close()
+
+    product = await Product.get(id=id)
+    business = await product.business
+    owner = await business.owner
+
+    if owner == user:
+        product.product_image = token_name
+        await product.save()
+
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated to perform this action",
+            headers = {"WWW-Authenticate":"Bearer"}
+        )
+    
+    file_url = "localhost:8000"+ generated_name[1:]
+
+    return {
+        "status":"ok",
+        "filename":file_url
+    }
+
 
