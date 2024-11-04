@@ -55,6 +55,11 @@ async def get_current_user(token: str = Depends(oath2_scheme)):
 async def user_login(user: user_pydanticIn = Depends(get_current_user)):
     #return business details of the user
     business =  await Business.get(owner=user)
+    logo = business.logo
+    logo_path = "localhost:8000/static/images"+logo
+
+
+
 
     return {
         "status":"ok",
@@ -62,7 +67,8 @@ async def user_login(user: user_pydanticIn = Depends(get_current_user)):
             "username": user.username,
             "email":user.email,
             "verified":user.is_verified,
-            "joined_date":user.join_date.strftime("%b %d %Y")
+            "joined_date":user.join_date.strftime("%b %d %Y"),
+            "logo":logo_path
 
         }
     }
@@ -315,3 +321,20 @@ async def create_upload_file(id:int, file:UploadFile = File(...),user:user_pydan
     }
 
 
+#crud functionalities
+
+@app.post("/products")
+async def add_new_product(product:product_pydanticIn ,user: user_pydantic = Depends(get_current_user)):
+
+    product = product.dict(exclude_unset=True)
+
+    #to avoid division by zero error
+
+    if product["original_price"] > 0:
+        product["percentage_discount"] = ((product["original_price"]-product["new_price"])/ product["original_price"]) * 100
+
+        product_obj = await Product.create(**product, business = user)
+
+        product_obj = await product_pydantic.from_tortoise_orm(product_obj)
+
+        
