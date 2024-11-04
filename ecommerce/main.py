@@ -337,4 +337,75 @@ async def add_new_product(product:product_pydanticIn ,user: user_pydantic = Depe
 
         product_obj = await product_pydantic.from_tortoise_orm(product_obj)
 
-        
+        return {
+                "status":"ok",
+                "data":product_obj
+                }
+    else:
+        return {
+            "status":"error"
+        }
+    
+@app.get("/product")
+async def get_product():
+    response = await product_pydantic.from_queryset(Product.all())
+
+    return {
+        "status":"ok",
+        "data":response
+        }
+
+
+@app.get("/product/{id}")
+async def get_product(id:int):
+    product = await Product.get(id = id)
+    business = await product.business
+    owner = await business.owner
+    response = await product_pydantic.from_queryset_single(Product.get(id = id))
+
+    return {
+        "status":"ok",
+        "data":{
+            "product_details": response,
+            "business_details":{
+                "name": business.business_name,
+                "city": business.city,
+                "region":business.region,
+                "description":business.business_description,
+                "logo":business.logo,
+                "owner_id":owner.id,
+                "email":owner.email,
+                "join_date":owner.join_date.strftime("%b %d %Y")
+            }
+        }
+    }
+
+#delete functions
+
+@app.delete("/products/{id}")
+async def delete_product(id:int, user:user_pydantic= Depends(get_current_user)):
+    product = await Product.get(id = id)
+    business = await product.business
+    owner = await business.owner
+
+    if product is None:
+       raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product does not exist",
+            headers = {"WWW-Authenticate":"Bearer"}
+        )
+
+    elif user == owner:
+        product.delete()
+
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated to perform this action",
+            headers = {"WWW-Authenticate":"Bearer"}
+        )
+    
+    return {
+        "status":"ok"
+    }
+
