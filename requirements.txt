@@ -9,3 +9,4 @@ pyjwt
 python-multipart
 pillow
 aiofiles
+secret
