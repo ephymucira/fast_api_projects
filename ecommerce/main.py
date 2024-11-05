@@ -10,7 +10,8 @@ from models import *
 from authentications import *
 from emailss import *
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-
+from dotenv import dotenv_values
+import requests
 #image upload
 from fastapi import File, UploadFile
 import secrets
@@ -28,6 +29,13 @@ app = FastAPI()
 
 oath2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
+goog_credentials = dotenv_values(".env")
+
+GOOGLE_CLIENT_ID = goog_credentials["GOOGLE_CLIENT_ID"]
+GOOGLE_CLIENT_SECRET = goog_credentials["GOOGLE_CLIENT_SECRET"]
+
+GOOGLE_REDIRECT_URI =goog_credentials["GOOGLE_REDIRECT_URI"]
+
 #static file setup config
 
 app.mount("/static", StaticFiles(directory="static"),name = "static")
@@ -35,12 +43,12 @@ app.mount("/static", StaticFiles(directory="static"),name = "static")
 
 @app.post("/token")
 async def generate_token(request_form:OAuth2PasswordRequestForm = Depends()):
-    token = await token_generator(request_form.username, request_form.password)
+    token = await token_generator(request_form.username,request_form.password)
     return {"access_token":token, "token_type":"bearer"}
 
 async def get_current_user(token: str = Depends(oath2_scheme)):
     try :
-        payload = jwt.decode(token,config_credentials["SECRET"],algorithms=["HS256"])
+        payload = jwt.decode(token,config_credentials["SECRET"],algorithms= "HS256")
         user = await User.get(id = payload.get("id"))
 
     except:
@@ -408,4 +416,32 @@ async def delete_product(id:int, user:user_pydantic= Depends(get_current_user)):
     return {
         "status":"ok"
     }
+
+
+
+
+@app.get("/login/google")
+async def login_google():
+    return {
+        "url": f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={GOOGLE_REDIRECT_URI}&scope=openid%20profile%20email&access_type=offline"
+    }
+
+@app.get("/auth/google")
+async def auth_google(request: Request):
+    code = request.query_params.get("code")
+    token_url = "https://accounts.google.com/o/oauth2/token"
+    data = {
+        "code": code,
+        "client_id": GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "grant_type": "authorization_code",
+    }
+    response = requests.post(token_url, data=data)
+    access_token = response.json().get("access_token")
+    user_info = requests.get("https://www.googleapis.com/oauth2/v1/userinfo", headers={"Authorization": f"Bearer {access_token}"})
+    print(response)
+    print(user_info)
+
+    return user_info.json()
 
