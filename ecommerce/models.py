@@ -27,6 +27,7 @@ class Product(Model):
     percentage_discount = fields.IntField()
     offer_expiration_date = fields.DateField(default = datetime.utcnow)
     product_image= fields.CharField(max_length=200,null = False, default = "productDefault.jpg")
+    date_published = fields.DatetimeField(default= datetime.utcnow)
     business = fields.ForeignKeyField("models.Business", related_name="products")
 
 

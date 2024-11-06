@@ -25,6 +25,14 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+register_tortoise(
+    app,
+    db_url="sqlite://database.sqlite3",
+    modules={"models": ["models"]},
+    generate_schemas=True,
+    add_exception_handlers=True
+)
+
  
 
 oath2_scheme = OAuth2PasswordBearer(tokenUrl='token')
@@ -83,13 +91,7 @@ async def user_login(user: user_pydanticIn = Depends(get_current_user)):
 
 
 
-register_tortoise(
-    app,
-    db_url="sqlite://database.sqlite3",
-    modules={"models": ["models"]},
-    generate_schemas=True,
-    add_exception_handlers=True
-)
+
 
 @app.post("/register")
 async def user_registration(user: user_pydanticIn):
@@ -445,3 +447,57 @@ async def auth_google(request: Request):
 
     return user_info.json()
 
+@app.put("/product/{id}")
+async def update_product(id:int,update_info:product_pydanticIn,user:user_pydantic = Depends(get_current_user)):
+    product = await Product.get(id = id)
+    owner = await product.business
+
+    update_info = update_info.dict(exclude_unset=True)
+    update_info["date_published"] = datetime.utcnow()
+
+    if user == owner and update_info["original_price"] != 0 :
+
+        update_info["percentage_discount"] = ((update_info["original_price"]-update_info["new_price"])/update_info["original_price"])*100
+
+        product = await product.update_from_dict(update_info)
+        response = await product_pydantic.from_tortoise_orm(product)
+
+        await product.save()
+
+        return {
+            "status":"ok",
+            "data":response
+        }
+    
+    else:
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authorised to perform this function"
+            headers={"WWW-Authenticate":"Bearer"}
+        )
+
+
+@app.put("/business/{id}")
+async def update_business(id:int,update_business:business_pydanticIn,user:user_pydantic = Depends(get_current_user)):
+
+    update_business = update_business.dict()
+
+    business = await Business.get(id=id)
+    business_owner = await business.owner
+
+    if user == business_owner:
+        await business.update_from_dict(update_business)
+        business.save()
+        response = await business_pydantic.from_tortoise_orm(business)
+        return {
+            "status":"ok",
+            "data":response
+        }
+    
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not Authenticated to perform this action",
+            headers={"WW-Authenticate":"Bearer"}
+        )
